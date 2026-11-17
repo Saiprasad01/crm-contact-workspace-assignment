@@ -1,0 +1,58 @@
+@use 'colors';
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid colors.$color-focus;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.btn--primary {
+  background: colors.$color-primary;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: colors.$color-primary-dark;
+  }
+}
+
+.btn--secondary {
+  background: #fff;
+  border-color: colors.$color-border;
+  color: colors.$color-text;
+
+  &:hover:not(:disabled) {
+    background: colors.$color-bg;
+  }
+}
+
+.btn--danger {
+  background: colors.$color-danger;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+}
+
+.btn--small {
+  padding: 4px 10px;
+  font-size: 13px;
+}

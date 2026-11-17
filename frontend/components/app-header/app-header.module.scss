@@ -1,0 +1,26 @@
+@use '../../styles/colors';
+
+.header {
+  background: colors.$color-surface;
+  border-bottom: 1px solid colors.$color-border;
+  padding: 14px 20px;
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+
+  &:focus-visible {
+    outline: 2px solid colors.$color-focus;
+    outline-offset: 2px;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: colors.$color-text;
+  max-width: 1200px;
+  margin-inline: auto;
+}

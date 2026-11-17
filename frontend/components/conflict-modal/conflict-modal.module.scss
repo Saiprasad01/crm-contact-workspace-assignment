@@ -1,0 +1,31 @@
+@use '../../styles/colors';
+
+.title {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+
+  th,
+  td {
+    border: 1px solid colors.$color-border;
+    padding: 8px 10px;
+    text-align: left;
+  }
+
+  thead th {
+    background: colors.$color-bg;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}

@@ -1,0 +1,474 @@
+openapi: 3.0.3
+info:
+  title: CRM Contact Workspace API
+  description: >
+    REST API for the CRM Contact Workspace take-home assignment. Backed by
+    Node's built-in `node:sqlite` (see README.md "Why not Prisma?").
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Local development
+
+tags:
+  - name: Contacts
+  - name: Tags
+  - name: Activity
+  - name: Health
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      servers:
+        - url: http://localhost:4000
+      responses:
+        '200':
+          description: The API is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /contacts:
+    get:
+      tags: [Contacts]
+      summary: List contacts
+      description: >
+        Search, filter, sort, and paginate contacts. All of it is handled
+        server-side (the brief's explicit requirement, "assume a production
+        account may contain millions of contacts").
+      parameters:
+        - name: q
+          in: query
+          description: Free-text search across first name, last name, email, and phone.
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: Comma-separated tag names. A contact matches if it has at least one.
+          schema:
+            type: string
+          example: VIP,Lead
+        - name: company
+          in: query
+          description: Partial, case-insensitive match against the company field.
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [name, createdAt]
+            default: createdAt
+        - name: sortDir
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Paginated list of contacts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactsListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /contacts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ContactId'
+    get:
+      tags: [Contacts]
+      summary: Get a single contact
+      responses:
+        '200':
+          description: The contact, with its tags.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Contacts]
+      summary: Update a contact
+      description: >
+        Optimistic-concurrency update: `version` must match the row's
+        current version or the request fails with 409 VERSION_CONFLICT (see
+        README.md "Concurrent-update approach"). `email`, if provided, must
+        not already belong to another contact (409 EMAIL_TAKEN).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactUpdateRequest'
+      responses:
+        '200':
+          description: The updated contact (version incremented by 1).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Email already taken, or the version is stale (someone else updated it first).
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/EmailTakenError'
+                  - $ref: '#/components/schemas/VersionConflictError'
+
+  /contacts/{id}/tags:
+    parameters:
+      - $ref: '#/components/parameters/ContactId'
+    post:
+      tags: [Tags]
+      summary: Add a tag to a contact
+      description: Creates the tag if it doesn't exist yet. Idempotent — adding an already-assigned tag is a no-op.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagNameRequest'
+      responses:
+        '201':
+          description: The tag (created or reused).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /contacts/{id}/tags/{tagId}:
+    parameters:
+      - $ref: '#/components/parameters/ContactId'
+      - name: tagId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags: [Tags]
+      summary: Remove a tag from a contact
+      responses:
+        '204':
+          description: Removed.
+        '404':
+          description: That tag isn't assigned to this contact.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /contacts/bulk/tags:
+    post:
+      tags: [Tags]
+      summary: Bulk-assign a tag to multiple contacts
+      description: Idempotent per contact — a contact that already has the tag is skipped, not double-counted or re-logged.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkTagRequest'
+      responses:
+        '200':
+          description: How many contacts were newly tagged vs. already had it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkTagResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /contacts/{id}/activity:
+    parameters:
+      - $ref: '#/components/parameters/ContactId'
+    get:
+      tags: [Activity]
+      summary: Recent activity for a contact
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Activity entries, newest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityListResponse'
+
+  /tags:
+    get:
+      tags: [Tags]
+      summary: List all tags
+      description: Every tag that exists, regardless of whether it's currently assigned to any contact. Used for filter dropdowns and tag-picker autocomplete.
+      responses:
+        '200':
+          description: All tags.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tag'
+
+components:
+  parameters:
+    ContactId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      example: ee3d19d5-16f4-4aa6-a251-e730cab24f95
+
+  responses:
+    BadRequest:
+      description: Validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Contact not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+
+  schemas:
+    Tag:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required: [id, name]
+
+    Contact:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        company:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          description: Optimistic-concurrency token. Send back the value you last read when updating.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+      required: [id, firstName, lastName, version, createdAt, updatedAt, tags]
+
+    ContactsListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+      required: [data, page, pageSize, total, totalPages]
+
+    ContactUpdateRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+          maxLength: 30
+        company:
+          type: string
+          nullable: true
+          maxLength: 150
+        version:
+          type: integer
+          minimum: 0
+          description: The version this edit was based on — the server rejects the write if it's stale.
+      required: [firstName, lastName, version]
+
+    TagNameRequest:
+      type: object
+      properties:
+        tagName:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required: [tagName]
+
+    BulkTagRequest:
+      type: object
+      properties:
+        contactIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        tagName:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required: [contactIds, tagName]
+
+    BulkTagResult:
+      type: object
+      properties:
+        updated:
+          type: integer
+          description: Contacts that newly got the tag.
+        skipped:
+          type: integer
+          description: Contacts that already had it (or didn't exist).
+      required: [updated, skipped]
+
+    ActivityType:
+      type: string
+      enum: [CONTACT_UPDATED, TAG_ADDED, TAG_REMOVED]
+
+    Activity:
+      type: object
+      properties:
+        id:
+          type: string
+        contactId:
+          type: string
+        type:
+          $ref: '#/components/schemas/ActivityType'
+        metadata:
+          type: object
+          nullable: true
+          description: 'Shape depends on `type`: {"changedFields": string[]} for CONTACT_UPDATED, {"tag": string} for TAG_ADDED/TAG_REMOVED.'
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, contactId, type, createdAt]
+
+    ActivityListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Activity'
+      required: [data]
+
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+          required: [code, message]
+      required: [error]
+
+    EmailTakenError:
+      allOf:
+        - $ref: '#/components/schemas/ApiError'
+      example:
+        error:
+          code: EMAIL_TAKEN
+          message: Another contact already uses this email address
+
+    VersionConflictError:
+      allOf:
+        - $ref: '#/components/schemas/ApiError'
+      example:
+        error:
+          code: VERSION_CONFLICT
+          message: This contact was updated by someone else since you loaded it
+          details:
+            latest:
+              id: ee3d19d5-16f4-4aa6-a251-e730cab24f95
+              firstName: Prudence
+              lastName: Hopper
+              email: prudence_reinger35@seed90.example.com
+              phone: '+19998887777'
+              company: Acme Corporation
+              version: 4
+              createdAt: '2026-11-12T21:32:49.007Z'
+              updatedAt: '2026-11-15T11:28:30.444Z'
+              tags:
+                - id: c458e35f-f25c-4a43-a9b7-8a41a8a419f0
+                  name: VIP

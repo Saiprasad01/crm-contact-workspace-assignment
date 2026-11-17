@@ -1,0 +1,37 @@
+@use '../../styles/colors';
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: colors.$color-warning-bg;
+  border: 1px solid colors.$color-border;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.count {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.input {
+  border: 1px solid colors.$color-border;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  min-width: 160px;
+}
+
+.confirmTitle {
+  margin-top: 0;
+  font-size: 17px;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}

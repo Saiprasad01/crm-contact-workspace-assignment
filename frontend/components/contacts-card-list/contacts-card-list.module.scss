@@ -1,0 +1,52 @@
+@use '../../styles/colors';
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+
+  @media (max-width: 767px) {
+    display: flex;
+  }
+}
+
+.card {
+  background: colors.$color-surface;
+  border: 1px solid colors.$color-border;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 13px;
+
+  dt {
+    color: colors.$color-text-muted;
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  > div {
+    display: contents;
+  }
+}

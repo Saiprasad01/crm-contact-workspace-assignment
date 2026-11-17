@@ -1,0 +1,47 @@
+@use '../../styles/colors';
+
+.panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  border: none;
+  margin: 0;
+  // Was `padding: 12px 0` — that pushed this fieldset's groups 12px below
+  // Search's wrapper (which has no such padding), even after Search got a
+  // matching visible label. Zero padding here keeps both flush with the
+  // toolbar's top edge.
+  padding: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: colors.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.input {
+  border: 1px solid colors.$color-border;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 14px;
+
+  &:focus-visible {
+    outline: 2px solid colors.$color-focus;
+    outline-offset: 1px;
+  }
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

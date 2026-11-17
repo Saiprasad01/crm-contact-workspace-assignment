@@ -1,0 +1,57 @@
+@use '../../styles/colors';
+
+.wrapper {
+  overflow-x: auto;
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: colors.$color-surface;
+  font-size: 14px;
+
+  th,
+  td {
+    text-align: left;
+    // Table cells default to vertical-align: baseline, which lines text up
+    // by its baseline but sits a checkbox near the top of the cell instead
+    // — the mismatch that made the checkbox column look misaligned with
+    // every text/button column next to it.
+    vertical-align: middle;
+    padding: 10px 12px;
+    border-bottom: 1px solid colors.$color-border;
+    white-space: nowrap;
+  }
+
+  thead th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: colors.$color-text-muted;
+  }
+}
+
+.sortButton {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: colors.$color-text-muted;
+  cursor: pointer;
+
+  &:hover {
+    color: colors.$color-text;
+  }
+
+  &:focus-visible {
+    outline: 2px solid colors.$color-focus;
+    outline-offset: 2px;
+  }
+}

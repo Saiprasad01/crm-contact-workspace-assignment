@@ -1,0 +1,26 @@
+@use '../../styles/colors';
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.section {
+  background: colors.$color-surface;
+  border: 1px solid colors.$color-border;
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-top: 16px;
+}
+
+.sectionTitle {
+  margin-top: 0;
+  font-size: 15px;
+}
