@@ -7,6 +7,7 @@ export default defineConfig({
     testTimeout: 20000,
     hookTimeout: 20000,
     fileParallelism: false,
+    exclude: ['dist/**', 'node_modules/**'],
     server: {
       // Vite's dependency transform doesn't yet recognize `node:sqlite` as a
       // builtin (it's very new/experimental) and tries to bundle it as if it

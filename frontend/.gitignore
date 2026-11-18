@@ -1,6 +1,14 @@
 node_modules/
+.env
+.env.*
+!.env.example
+!.env.local.example
 .next/
 build/
 out/
-.env.local
+dist/
+coverage/
 *.log
+.DS_Store
+Thumbs.db
+tsconfig.tsbuildinfo

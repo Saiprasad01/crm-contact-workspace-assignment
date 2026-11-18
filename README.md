@@ -145,3 +145,89 @@ The backend stores data in SQLite at `backend/data/dev.db` after seeding. The sc
 ## License
 
 This project is for assignment/demo purposes and is not intended as a production-ready CRM system without further review and hardening.
+
+## Known issues / incomplete functionality
+
+- **Deployed link's data is ephemeral.** See "Deployment" above — Render's free tier has no persistent disk, so the SQLite file resets to the seeded dataset on every cold start. Intentional trade-off for a free demo link, not a bug.
+
+## Deployment
+
+Backend → **Render** (requires a persistent Node process, not a static host).
+
+Frontend → **Vercel** (static export).
+
+Deploy in this order because each side requires the other's final URL.
+
+**1. Backend first**
+
+- Push the repository to GitHub.
+- Open Render.
+- Select New → Blueprint.
+- Connect the GitHub repository.
+- Render should detect `render.yaml` at the repository root.
+- The configuration defines the root directory, build/start commands, and environment variables.
+- Render provides a backend URL similar to:
+  `https://crm-contacts-backend.onrender.com`
+
+- Verify that `GET /health` returns:
+
+```json
+{"status":"ok"}
+```
+
+**2. Frontend next**
+
+- Open Vercel.
+- Select New Project.
+- Import the same GitHub repository.
+- Set Root Directory to `frontend`.
+- Configure the following environment variable:
+  `NEXT_PUBLIC_API_BASE_PATH`
+
+- Set its value to:
+
+  `https://<your-render-url>/api/v1`
+
+- Replace the placeholder with the actual Render backend URL.
+- Deploy the frontend.
+- Vercel will provide a URL similar to:
+  `https://crm-contact-workspace.vercel.app`
+
+**3. Configure CORS**
+
+- Return to the Render dashboard.
+- Open the backend service's environment variables.
+- Set `CORS_ORIGIN` to the actual deployed Vercel frontend URL.
+
+Example:
+
+```text
+https://crm-contact-workspace.vercel.app
+```
+
+- Save the environment variable.
+- Render should automatically redeploy the backend.
+- Verify that frontend API requests work without CORS errors.
+
+### Known limitation of this deployment setup
+
+Render's free tier does not provide a persistent disk by default and may spin down the service after inactivity.
+
+The SQLite database file resets to the seeded 220 contacts whenever the service restarts.
+
+This is expected and useful for a demo deployment because it provides a clean and consistent dataset.
+
+However, edits made through the deployed application will not survive a cold start.
+
+Local development is unaffected because `data/dev.db` persists normally on the local disk.
+
+## Data model
+
+The SQLite database contains:
+
+- `contacts` — contact details and an optimistic-concurrency `version`
+- `tags` — unique tag names
+- `contact_tags` — many-to-many join records between contacts and tags
+- `activity` — contact update, tag-addition, and tag-removal events
+
+The full schema is implemented in `backend/src/db/client.ts`.

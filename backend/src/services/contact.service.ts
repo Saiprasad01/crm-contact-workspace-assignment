@@ -61,7 +61,7 @@ export function listContacts(query: ContactsQueryInput) {
   const { q, tags, company, sortBy, sortDir, page, pageSize } = query;
 
   const conditions: string[] = [];
-  const params: unknown[] = [];
+  const params: Array<null | number | bigint | string | NodeJS.ArrayBufferView> = [];
 
   if (q) {
     // SQLite's LIKE is case-insensitive for ASCII by default, so this behaves
