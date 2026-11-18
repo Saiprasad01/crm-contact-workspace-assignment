@@ -20,10 +20,8 @@ import styles from './view.module.scss';
 
 /**
  * A query-param route (`/contacts/view?id=...`) rather than a dynamic
- * `[id].tsx` segment — this project builds with `output: 'export'`, which
- * requires `getStaticPaths` to know every path at build time. Contact ids
- * are runtime/DB-driven, so a query string sidesteps that requirement
- * entirely while staying just as shareable/bookmarkable.
+ * `[id].tsx` segment — contact ids are runtime/DB-driven, so a query string
+ * keeps the route shareable without requiring build-time contact paths.
  */
 export default function ContactDetailPage() {
   const router = useRouter();

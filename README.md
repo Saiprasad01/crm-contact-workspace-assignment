@@ -139,7 +139,7 @@ The backend stores data in SQLite at `backend/data/dev.db` after seeding. The sc
 ## Notes
 
 - The project was intentionally structured as a full-stack monorepo with separate backend and frontend apps.
-- The frontend is a static export build and uses a query-based route pattern to avoid runtime-only dynamic path generation.
+- The frontend uses a query-based route for contact details and is deployed as a normal Next.js application on Vercel.
 - The backend uses plain parameterized SQL instead of an ORM.
 
 ## License
@@ -154,7 +154,7 @@ This project is for assignment/demo purposes and is not intended as a production
 
 Backend → **Render** (requires a persistent Node process, not a static host).
 
-Frontend → **Vercel** (static export).
+Frontend → **Vercel** (Next.js application).
 
 Deploy in this order because each side requires the other's final URL.
 
