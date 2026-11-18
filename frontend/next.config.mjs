@@ -7,10 +7,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
-  distDir: 'build',
-  // Stray lockfiles in parent folders (unrelated to this project) would
-  // otherwise make Next guess the workspace root wrong.
-  outputFileTracingRoot: __dirname,
 };
 
 export default nextConfig;
